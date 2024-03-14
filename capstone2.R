@@ -155,8 +155,6 @@ variables <- c(
 
 
 filtered_data[variables] <- lapply(filtered_data[variables], function(x) ifelse(is.na(x), 0, x))
-
-
 filtered_data <- filtered_data[rowSums(filtered_data[variables] == 0) != length(variables), ]
 
 
@@ -378,10 +376,7 @@ rows_with_NAs <- apply(filtered_data[ratios], 1, function(x) any(is.na(x)))
 
 
 filtered_data <- filtered_data[!rows_with_NAs,]
-for (column in ratios) {
-  print(paste0("Summary of ", column, ":"))
-  print(summary(filtered_data[[paste0(column)]]))
-}
+                       
 nrow(filtered_data)
 filtered_data <- filtered_data[filtered_data$sportsrate <= 1,]
 nrow(filtered_data)
@@ -472,9 +467,7 @@ summary(filtered_data$SCH_INTERNET_STUDDEV)
 # #TOT_DISCWODIS_SINGOOS_M one suspension only
 # #TOT_DAYSMISSED_M days missed to suspension
 # 
-# 
-# #remember TOT_ABSENT_M
-# List of column names you want to include
+
 columns_to_include <- c("advancedMath_PER_ENR", "APenroll_PER_ENR", "algebraII_PER_ENR", "biology_PER_ENR", 
                         "calculus_PER_ENR", "chemistry_PER_ENR", "computerscience_PER_ENR", "dual_PER_ENR", 
                         "ESL program_PER_ENR", "disabilities_PER_ENR", "geometry_PER_ENR", "physics_PER_ENR", 
@@ -651,7 +644,7 @@ other <- lm(formula = tested ~ advancedMath_PER_ENR + APenroll_PER_ENR +
               biology_PER_ENR:sportsrate + chemistry_PER_ENR:sportsrate +
               chemistry_PER_ENR:dual_PER_ENR, data = final_data)
 summary(other) #0.4938
-length(coef(other)) - 1 #377 variables
+
 high_order <- lm(formula = tested ~ advancedMath_PER_ENR + APenroll_PER_ENR +
                    algebraII_PER_ENR + biology_PER_ENR + calculus_PER_ENR +
                    chemistry_PER_ENR + dual_PER_ENR + `ESL program_PER_ENR` +
@@ -661,8 +654,7 @@ high_order <- lm(formula = tested ~ advancedMath_PER_ENR + APenroll_PER_ENR +
                    calculus_PER_ENR:disabilities_PER_ENR + APenroll_PER_ENR:calculus_PER_ENR +
                    TOT_REF_PER_ENR:sportsrate + calculus_PER_ENR:dual_PER_ENR,
                  data = final_data)
-summary(high_order) #0.4549
-length(coef(high_order)) - 1 #69 variables
+summary(high_order) #0.454
 
 ##Partial F test
 anova_result <- anova(first, high_order)
