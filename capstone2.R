@@ -154,8 +154,15 @@ variables <- c(
 )
 
 
-filtered_data[variables] <- lapply(filtered_data[variables], function(x) ifelse(is.na(x), 0, x))
-filtered_data <- filtered_data[rowSums(filtered_data[variables] == 0) != length(variables), ]
+
+for (variable in variables) {
+    nas = is.na(filtered_data[[variable]])
+    filtered_data[[variable]][nas] <- 0
+}
+zeros = rowSums(filtered_data[variables] == 0)
+num_variables = length(variables)
+filtered_data <- filtered_data[zeros != num_variables, ]
+
 
 
 column_pairs = list(
