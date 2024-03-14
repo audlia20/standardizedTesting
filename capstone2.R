@@ -32,7 +32,6 @@ suspensions <- read.csv("/Users/audreyliang/Downloads/2020-21-crdc-data/CRDC/Sch
 transfers <- read.csv("/Users/audreyliang/Downloads/2020-21-crdc-data/CRDC/School/Transfers.csv")
 #absenteeism <- read.csv("/Users/audreyliang/Downloads/2020-21-crdc-data/EDFacts/FS195 DG814/ID 814 SCH - Chronic Absenteeism.csv")
 names(absenteeism)[names(absenteeism) == "SCHOOL_NAME"] <- "SCH_NAME"
-# Assuming you have your data frames loaded as mentioned earlier
 df_list <- list(advancedMath, advancedPlacement, algebraI, algebraII, biology, calculus, chemistry,
                 computerScience, corporalPunishment, covidDirectionalIndicators, dualEnrollment,
                 enrollment, expulsions, geometry, giftedAndTalented, harassmentAndBullying,
