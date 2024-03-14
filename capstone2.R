@@ -30,7 +30,7 @@ singleSexAthletics <- read.csv("/Users/audreyliang/Downloads/2020-21-crdc-data/C
 singleSexClasses <- read.csv("/Users/audreyliang/Downloads/2020-21-crdc-data/CRDC/School/Single sex Classes.csv")
 suspensions <- read.csv("/Users/audreyliang/Downloads/2020-21-crdc-data/CRDC/School/Suspensions.csv")
 transfers <- read.csv("/Users/audreyliang/Downloads/2020-21-crdc-data/CRDC/School/Transfers.csv")
-absenteeism <- read.csv("/Users/audreyliang/Downloads/2020-21-crdc-data/EDFacts/FS195 DG814/ID 814 SCH - Chronic Absenteeism.csv")
+#absenteeism <- read.csv("/Users/audreyliang/Downloads/2020-21-crdc-data/EDFacts/FS195 DG814/ID 814 SCH - Chronic Absenteeism.csv")
 names(absenteeism)[names(absenteeism) == "SCHOOL_NAME"] <- "SCH_NAME"
 # Assuming you have your data frames loaded as mentioned earlier
 df_list <- list(advancedMath, advancedPlacement, algebraI, algebraII, biology, calculus, chemistry,
@@ -39,7 +39,7 @@ df_list <- list(advancedMath, advancedPlacement, algebraI, algebraII, biology, c
                 internationalBaccalaureate, internetAccessAndDevices, justiceFacilities, offenses,
                 physics, referralsAndArrests, restraintAndSeclusion, retention, satAndAct,
                 schoolCharacteristics, schoolSupport, singleSexAthletics, singleSexClasses,
-                suspensions, transfers, absenteeism)
+                suspensions, transfers)
 key_columns <- c("LEA_STATE", "LEA_STATE_NAME", "LEAID", "LEA_NAME", "SCHID", "SCH_NAME")
 
 
