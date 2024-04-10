@@ -1,4 +1,5 @@
 
+
 advancedMath <- read.csv("/Users/audreyliang/Downloads/2020-21-crdc-data/CRDC/School/Advanced Mathematics.csv")
 advancedPlacement <- read.csv("/Users/audreyliang/Downloads/2020-21-crdc-data/CRDC/School/Advanced Placement.csv")
 algebraI <- read.csv("/Users/audreyliang/Downloads/2020-21-crdc-data/CRDC/School/Algebra I.csv")
@@ -51,7 +52,6 @@ for(column in columns) {
   negative <- all_data[[column]] < 0
   all_data[[column]][negative] <- NA
 }
-
 standardized <- c("TOT_SATACT_M", "TOT_SATACT_F", "TOT_ENR_F", "TOT_ENR_M")
 complete <- rep(TRUE, nrow(all_data))
 for(column in standardized) {
@@ -65,7 +65,7 @@ nrow(cleaned_data)
 summary(cleaned_data$TOT_SATACT_M)
 
 
-
+#filter for 4-year high-schools
 filtered_data <- cleaned_data[cleaned_data$SCH_GRADE_PS =="No" & cleaned_data$SCH_GRADE_KG == "No" & cleaned_data$SCH_GRADE_G01 == "No" &
                                 cleaned_data$SCH_GRADE_G02 == "No" & cleaned_data$SCH_GRADE_G03 == "No" & cleaned_data$SCH_GRADE_G04 == "No" & 
                                 cleaned_data$SCH_GRADE_G05 == "No" & cleaned_data$SCH_GRADE_G06 == "No" & cleaned_data$SCH_GRADE_G07 == "No" &
@@ -75,6 +75,8 @@ filtered_data <- cleaned_data[cleaned_data$SCH_GRADE_PS =="No" & cleaned_data$SC
 
 
 nrow(filtered_data) #12141
+
+#clean response variable
 summary(filtered_data$TOT_SATACT_M)
 
 filtered_data$TOT_ENR_TOTAL = filtered_data$TOT_ENR_F + filtered_data$TOT_ENR_M
@@ -86,7 +88,7 @@ filtered_data <- filtered_data[filtered_data$tested<=1,]
 nrow(filtered_data) #12135
 summary(filtered_data$tested)
 
-#total number to include in analysis, encode 0 and then add up m/f, divide these all by total enrollment. remove rows that contain all zero
+#data exploration and deciding which variables to include
 summary(filtered_data$TOT_MATHENR_ADVM_M) #1688/13997  adanced math encode 0
 summary(filtered_data$TOT_MATHENR_ADVM_F) #1694/13997 
 summary(filtered_data$TOT_APENR_M) #3740/13997 ap course participation, encode 0
@@ -205,8 +207,6 @@ for (new_col in names(column_pairs)) {
   print(summary(filtered_data[[paste0(new_col, "_PER_ENR")]]))
 }
 
-#include advancedMath_PER_ENR, APenroll_PER_ENR, algebraII_PER_ENR, biology_PER_ENR, calculus_PER_ENR, chemistry_PER_ENR, computerscience_PER_ENR, 
-#dual_PER_ENR, ESL program_PER_ENR, disabilities_PER_ENR, geometry_PER_ENR, Summary of physics_PER_ENR
 
 
 summary(filtered_data$TOT_DISCWODIS_EXPWE_M) #1401/13997 without Disabilities who received an expulsion with educational services
@@ -313,9 +313,6 @@ for (i in 1:nrow(filtered_data)) {
   rows_with_NAs[i] <- any(is.na(filtered_data[i, ratios]))
 }
 
-
-
-
 filtered_data <- filtered_data[!rows_with_NAs,]
 
 nrow(filtered_data)
@@ -418,6 +415,7 @@ columns_to_include <- c("advancedMath_PER_ENR", "APenroll_PER_ENR", "algebraII_P
                         "SCH_INTERNET_STUDDEV", "tested")
 
 final_data <- filtered_data[, columns_to_include]
+final_data[final_data < 0] <- 0
 final_data <- na.omit(final_data)
 nrow(final_data)
 model_full <- lm(tested ~ advancedMath_PER_ENR + APenroll_PER_ENR + algebraII_PER_ENR + biology_PER_ENR + calculus_PER_ENR + chemistry_PER_ENR
@@ -425,7 +423,7 @@ model_full <- lm(tested ~ advancedMath_PER_ENR + APenroll_PER_ENR + algebraII_PE
                    TOT_REF_PER_ENR + TOT_ISS_PER_ENR + sportsrate + teacherRatio + counselorRatio + healthProf + deviceRatio + LEA_STATE +
                    attacks + sexualAssault +SCH_DIND_INSTRUCTIONTYPE + SCH_INTERNET_FIBER + SCH_INTERNET_WIFI + SCH_INTERNET_SCHDEV + 
                    SCH_INTERNET_STUDDEV, data = final_data)
-summary(model_full)       #0.4496             
+summary(model_full)       #0.4531             
 
 
 library(car)
@@ -483,28 +481,23 @@ for(i in 1:10)
   CV1 <- CV1 + (1/n) * sum((final_data$tested[id.cv[[i]]] - predict(fit1,final_data[id.cv[[i]], ]))^2)
   CV2 <- CV2 + (1/n) * sum((final_data$tested[id.cv[[i]]] - predict(fit2,final_data[id.cv[[i]], ]))^2)
 }
-print(c(CV1,CV2)) #0.01019347 0.01020930
-print(sqrt(c(CV1,CV2))) #0.1009740 0.1010279
+print(c(CV1,CV2)) #0.01025940 0.01028229
+print(sqrt(c(CV1,CV2))) #0.1012887 0.1014016
 # choose fit2, parsimonious as not much diff in CV
 
-hist(final_data$tested, 
-     main = "Histogram of SAT/ACT Test Participation Rate", 
-     xlab = "Ratio of Students who took SAT/ACT", 
-     col = "darkblue")
-#skewed right
 
 
 other = lm(formula = tested ~ advancedMath_PER_ENR + APenroll_PER_ENR + algebraII_PER_ENR + biology_PER_ENR + calculus_PER_ENR + 
              chemistry_PER_ENR + dual_PER_ENR + `ESL program_PER_ENR` + disabilities_PER_ENR + TOT_REF_PER_ENR + sportsrate + healthProf + 
              deviceRatio + LEA_STATE + sexualAssault + SCH_DIND_INSTRUCTIONTYPE + SCH_INTERNET_FIBER + SCH_INTERNET_WIFI, data=final_data)
-summary(other) #0.4498 R squared
+summary(other) #0.4533 R squared
 ##Best 1rst order model
 first=lm(formula = tested ~ advancedMath_PER_ENR + APenroll_PER_ENR +
            algebraII_PER_ENR + biology_PER_ENR + calculus_PER_ENR +
            chemistry_PER_ENR + dual_PER_ENR + `ESL program_PER_ENR` +
            disabilities_PER_ENR + TOT_REF_PER_ENR + sportsrate + LEA_STATE,
          data=final_data)
-summary(first) #0.4481 R squared
+summary(first) #0.451 R squared
 
 #interaction terms
 step(first,.~.^2,direction="both",k=2) #use AIC
@@ -565,26 +558,8 @@ for(i in 1:10)
   CV1 <- CV1 + (1/n) * sum((final_data$tested[id.cv[[i]]] - predict(fit1,final_data[id.cv[[i]], ]))^2)
   CV2 <- CV2 + (1/n) * sum((final_data$tested[id.cv[[i]]] - predict(fit2,final_data[id.cv[[i]], ]))^2)
 }
-print(c(CV1,CV2)) #0.01006552 0.01010850, close enogh
-sqrt(c(0.01006552, 0.01010850))
-
-
-other <- lm(formula = tested ~ advancedMath_PER_ENR + APenroll_PER_ENR +
-              algebraII_PER_ENR + biology_PER_ENR + calculus_PER_ENR +
-              chemistry_PER_ENR + dual_PER_ENR + `ESL program_PER_ENR` +
-              disabilities_PER_ENR + TOT_REF_PER_ENR + sportsrate + LEA_STATE +
-              APenroll_PER_ENR:LEA_STATE + algebraII_PER_ENR:LEA_STATE +
-              `ESL program_PER_ENR`:LEA_STATE + dual_PER_ENR:LEA_STATE +
-              sportsrate:LEA_STATE + calculus_PER_ENR:LEA_STATE + calculus_PER_ENR:`ESL program_PER_ENR` +
-              calculus_PER_ENR:chemistry_PER_ENR + APenroll_PER_ENR:sportsrate +
-              advancedMath_PER_ENR:disabilities_PER_ENR + TOT_REF_PER_ENR:sportsrate +
-              algebraII_PER_ENR:biology_PER_ENR + advancedMath_PER_ENR:calculus_PER_ENR +
-              APenroll_PER_ENR:calculus_PER_ENR + APenroll_PER_ENR:dual_PER_ENR +
-              advancedMath_PER_ENR:dual_PER_ENR + APenroll_PER_ENR:`ESL program_PER_ENR` +
-              calculus_PER_ENR:disabilities_PER_ENR + advancedMath_PER_ENR:biology_PER_ENR +
-              biology_PER_ENR:sportsrate + chemistry_PER_ENR:sportsrate +
-              chemistry_PER_ENR:dual_PER_ENR, data = final_data)
-summary(other) #0.4938
+print(c(CV1,CV2)) #0.01047970 0.01017927, close enogh
+sqrt(c(0.0104797, 0.01017927))
 
 high_order <- lm(formula = tested ~ advancedMath_PER_ENR + APenroll_PER_ENR +
                    algebraII_PER_ENR + biology_PER_ENR + calculus_PER_ENR +
@@ -595,7 +570,7 @@ high_order <- lm(formula = tested ~ advancedMath_PER_ENR + APenroll_PER_ENR +
                    calculus_PER_ENR:disabilities_PER_ENR + APenroll_PER_ENR:calculus_PER_ENR +
                    TOT_REF_PER_ENR:sportsrate + calculus_PER_ENR:dual_PER_ENR,
                  data = final_data)
-summary(high_order) #0.454
+summary(high_order) #0.4577
 
 ##Partial F test
 anova_result <- anova(first, high_order)
@@ -617,7 +592,7 @@ final <- lm(formula = sqrt(tested) ~ advancedMath_PER_ENR + APenroll_PER_ENR +
               calculus_PER_ENR:disabilities_PER_ENR + APenroll_PER_ENR:calculus_PER_ENR +
               TOT_REF_PER_ENR:sportsrate + calculus_PER_ENR:dual_PER_ENR,
             data = final_data)
-summary(final) #R squared 0.5053
+summary(final) #R squared 0.5135
 plot(resid(final) ~ fitted(final), xlab = "Fitted Values", ylab = "Residuals",
      main = "Residuals vs Fitted Values")
 abline(h = 0, col = 2) #much better
@@ -662,7 +637,7 @@ last <- lm(formula = sqrt(tested) ~ advancedMath_PER_ENR + APenroll_PER_ENR +
              calculus_PER_ENR:disabilities_PER_ENR + APenroll_PER_ENR:calculus_PER_ENR +
              TOT_REF_PER_ENR:sportsrate + calculus_PER_ENR:dual_PER_ENR,
            data = last_data)
-summary(last) #0.6096 adjusted R squared
+summary(last) #0.60161 adjusted R squared
 
 # Convert LEA_STATE to character to avoid factor level issues
 last_data$LEA_STATE <- as.character(last_data$LEA_STATE)
@@ -713,13 +688,45 @@ plot(last, which = 3)
 # For the Residuals vs Leverage plot
 plot(last, which = 5)
 
+
+
+
 #additional visalizations
+library(ggplot2)
+
+
 average_tested_per_state <- aggregate(tested ~ LEA_STATE, last_data, mean)
 average_tested_per_state <- average_tested_per_state[order(average_tested_per_state$tested), ]
-library(ggplot2)
 ggplot(average_tested_per_state, aes(x=LEA_STATE, y=tested)) +
   geom_bar(stat="identity", fill="darkblue") +
-  labs(title="Average SAT/ACT Rarticipation Rate by State",
+  labs(title="Average SAT/ACT Participation Rate by State",
        x="State",
-       y="SAT/ACT Rarticipation Rate") +
-  theme(axis.text.x=element_text(angle=90, hjust=1))
+       y="SAT/ACT Participation Rate") +
+  theme(axis.text.x = element_text(angle=90, hjust=1, vjust=0.5), plot.title = element_text(hjust = 0.5)) +
+  scale_x_discrete(limits=average_tested_per_state$LEA_STATE)
+
+
+
+
+tested_data <- last_data$tested
+binwidth <- 0.10
+ggplot(last_data, aes(x=tested)) +
+  geom_histogram(aes(y = ..count../sum(..count..) * 100),
+                 binwidth = binwidth, 
+                 boundary = 0, 
+                 color = "black",
+                 fill = "navy") +
+  scale_x_continuous(breaks = seq(0, 1, by = binwidth)) +
+  labs(title = "Histogram of SAT/ACT Participation Rate",
+       x = "SAT/ACT Participation Rate (0-1 scale)",
+       y = "Percentage of Schools (%)") +
+  theme(axis.text.x=element_text(angle=90, hjust=1),
+        plot.title = element_text(hjust = 0.5))
+
+
+plot(last_data$`ESL program_PER_ENR`, last_data$tested, main = "ESL Program vs. Testing", xlab = "ESL program Participation Rate", ylab = "Standardized Test Participation Rate", col = "lightblue")
+lines(smooth.spline(last_data$`ESL program_PER_ENR`, last_data$tested), col = "navy")
+plot(last_data$APenroll_PER_ENR, last_data$tested, main = "AP Enrollment vs. Testing", xlab = "AP Enrollment Rate", ylab = "Standardized Test Participation Rate", col = "lightgreen")
+lines(smooth.spline(last_data$APenroll_PER_ENR, last_data$tested), col = "darkgreen")
+plot(last_data$disabilities_PER_ENR, last_data$tested, main = "Disability Rate vs. Testing", xlab = "Proportion of Students with Disabilities", ylab = "Standardized Test Participation Rate", col = "lightpink")
+lines(smooth.spline(last_data$disabilities_PER_ENR, last_data$tested), col = "red")
